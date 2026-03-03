@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Personal Finance Tracker</title>
+    <style>
+        /* ── Reset & Base ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header a.btn-add {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff;
+            text-decoration: none;
+            padding: 0.55rem 1.3rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+        }
+        header a.btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(124,58,237,0.6);
+        }
+
+        /* ── Main Container ── */
+        main {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ── Summary Cards ── */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+        .summary-card {
+            background: #1a1a2e;
+            border-radius: 14px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+        }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+        .summary-card.income::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+        .summary-card.expense::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .summary-card.balance::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+
+        .summary-card .label {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+        .summary-card .amount {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .summary-card.income  .amount { color: #34d399; }
+        .summary-card.expense .amount { color: #f87171; }
+        .summary-card.balance .amount { color: #a78bfa; }
+        .summary-card .month-badge {
+            font-size: 0.72rem;
+            color: #64748b;
+            margin-top: 0.3rem;
+        }
+
+        /* ── Section Title ── */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #c7d2fe;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+        }
+
+        /* ── Table ── */
+        .table-wrapper {
+            background: #1a1a2e;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead th {
+            background: #16213e;
+            padding: 0.9rem 1.1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #94a3b8;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        tbody tr {
+            transition: background 0.15s;
+        }
+        tbody tr:hover { background: rgba(255,255,255,0.03); }
+        tbody td {
+            padding: 0.85rem 1.1rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .badge-income  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
+        .badge-expense { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+        .cat-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: rgba(99,102,241,0.12);
+            color: #a5b4fc;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            border: 1px solid rgba(165,180,252,0.15);
+        }
+
+        /* Delete button */
+        .btn-delete {
+            background: transparent;
+            border: 1px solid rgba(239,68,68,0.35);
+            color: #f87171;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-delete:hover {
+            background: rgba(239,68,68,0.15);
+        }
+
+        /* Note cell */
+        td.note { color: #64748b; font-style: italic; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #475569;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .empty-state p { font-size: 1rem; }
+        .empty-state a { color: #7c3aed; text-decoration: none; }
+
+        /* Positive/negative balance color */
+        .positive { color: #34d399; }
+        .negative { color: #f87171; }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #334155;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>💰 Personal Finance Tracker</h1>
+    <a class="btn-add" href="/add">＋ Add Transaction</a>
+</header>
+
+<main>
+
+    <!-- ── Monthly Summary ── -->
+    <p class="section-title">
+        📊 Summary for <span th:text="${currentMonth + ' ' + currentYear}" style="margin-left:0.3rem;color:#a78bfa"></span>
+    </p>
+
+    <div class="summary-grid">
+        <div class="summary-card income">
+            <div class="label">Total Income</div>
+            <div class="amount" th:text="'₹ ' + ${#numbers.formatDecimal(monthlyIncome,1,2)}">₹ 0.00</div>
+            <div class="month-badge" th:text="${currentMonth + ' ' + currentYear}"></div>
+        </div>
+        <div class="summary-card expense">
+            <div class="label">Total Expenses</div>
+            <div class="amount" th:text="'₹ ' + ${#numbers.formatDecimal(monthlyExpenses,1,2)}">₹ 0.00</div>
+            <div class="month-badge" th:text="${currentMonth + ' ' + currentYear}"></div>
+        </div>
+        <div class="summary-card balance">
+            <div class="label">Net Balance</div>
+            <div class="amount"
+                 th:classappend="${monthlyBalance >= 0} ? 'positive' : 'negative'"
+                 th:text="'₹ ' + ${#numbers.formatDecimal(monthlyBalance,1,2)}">₹ 0.00</div>
+            <div class="month-badge" th:text="${currentMonth + ' ' + currentYear}"></div>
+        </div>
+    </div>
+
+    <!-- ── Transactions Table ── -->
+    <p class="section-title">🧾 All Transactions</p>
+
+    <div class="table-wrapper">
+        <div th:if="${#lists.isEmpty(transactions)}" class="empty-state">
+            <div class="icon">📂</div>
+            <p>No transactions yet. <a href="/add">Add your first one!</a></p>
+        </div>
+
+        <table th:if="${!#lists.isEmpty(transactions)}">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Note</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="tx, stat : ${transactions}">
+                    <td th:text="${stat.count}" style="color:#475569"></td>
+                    <td th:text="${#temporals.format(tx.date, 'dd MMM yyyy')}"></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${tx.type.name() == 'INCOME'} ? 'badge-income' : 'badge-expense'"
+                              th:text="${tx.type}"></span>
+                    </td>
+                    <td><span class="cat-badge" th:text="${tx.category}"></span></td>
+                    <td>
+                        <span th:classappend="${tx.type.name() == 'INCOME'} ? 'positive' : 'negative'"
+                              th:text="'₹ ' + ${#numbers.formatDecimal(tx.amount,1,2)}"></span>
+                    </td>
+                    <td class="note" th:text="${tx.note != null ? tx.note : '—'}"></td>
+                    <td>
+                        <form th:action="@{/delete/{id}(id=${tx.id})}" method="post"
+                              onsubmit="return confirm('Delete this transaction?');">
+                            <button type="submit" class="btn-delete">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<footer>Personal Finance Tracker &copy; 2024 — powered by Spring Boot &amp; H2</footer>
+
+</body>
+</html>
