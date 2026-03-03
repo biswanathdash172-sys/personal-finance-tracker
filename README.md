@@ -84,7 +84,10 @@ personal-finance-tracker/
 
 ## 📸 Screenshots
 
-> _Add a screenshot of the app here once it's running!_
+<img width="1754" height="797" alt="Screenshot 2026-03-04 014139" src="https://github.com/user-attachments/assets/a9f9b26c-0a83-4190-b821-1062484eafda" />
+<img width="668" height="818" alt="Screenshot 2026-03-04 014156" src="https://github.com/user-attachments/assets/8b306aec-5e12-4f29-81ab-8419dfbb7706" />
+
+
 
 ---
 
